@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ryan Name Generator</title>
+  <meta name="description" content="A very serious, extremely scientific name generator." />
+  <style>
+    :root{
+      --bg: radial-gradient(1200px 800px at 20% 10%, #7dd3fc33 0%, transparent 60%),
+            radial-gradient(1000px 700px at 80% 90%, #c4b5fd33 0%, transparent 55%),
+            linear-gradient(180deg, #0b1020 0%, #0a0f1c 100%);
+      --card: #0f172aCC; /* slate-900 + alpha */
+      --muted: #94a3b8;  /* slate-400 */
+      --text: #e2e8f0;   /* slate-200 */
+      --accent: #60a5fa; /* blue-400 */
+      --accent-2: #a78bfa; /* violet-400 */
+      --ring: #38bdf8;  /* sky-400 */
+      --shadow: 0 20px 40px rgba(2, 6, 23, .6), inset 0 1px 0 rgba(255,255,255,.04);
+      --radius: 22px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      color:var(--text);
+      background:var(--bg) fixed;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      letter-spacing:0.2px;
+    }
+    .wrap{
+      min-height:100%;
+      display:grid;
+      place-items:center;
+      padding:48px 16px;
+    }
+    .card{
+      width:min(840px, 92vw);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)) , var(--card);
+      backdrop-filter: blur(18px);
+      border:1px solid rgba(148,163,184,.15);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .header{
+      padding:28px 28px 10px;
+      display:flex; align-items:center; gap:14px;
+      border-bottom:1px solid rgba(148,163,184,.12);
+      background:linear-gradient(180deg, rgba(96,165,250,.08), transparent 65%);
+    }
+    .logo{
+      width:42px; height:42px; border-radius:14px;
+      display:grid; place-items:center;
+      background:linear-gradient(135deg, var(--accent), var(--accent-2));
+      color:white; font-weight:900; font-size:18px;
+      box-shadow:0 10px 20px rgba(96,165,250,.3);
+      user-select:none;
+    }
+    h1{
+      margin:0;
+      font-size: clamp(22px, 2.2vw + 12px, 32px);
+      letter-spacing:.3px;
+    }
+    .subtitle{
+      margin:4px 0 0; color:var(--muted); font-size:14px;
+    }
+    .body{padding:28px}
+    .output{
+      margin:14px 0 18px;
+      padding:20px 22px;
+      border:1px solid rgba(148,163,184,.18);
+      background:rgba(2,6,23,.35);
+      border-radius:16px;
+      min-height:64px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      font-size: clamp(22px, 2.8vw + 10px, 34px);
+      line-height:1.2;
+      position:relative;
+      isolation:isolate;
+    }
+    .output[aria-busy="true"]::after{
+      content:"";
+      position:absolute; inset:0;
+      background:linear-gradient(90deg, transparent, rgba(148,163,184,.1), transparent);
+      animation: shimmer 1.2s linear infinite;
+      border-radius:inherit;
+      z-index:-1;
+    }
+    @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+    .pill{
+      padding:6px 10px; border-radius:999px;
+      font-size:12px; color:#cbd5e1; border:1px solid rgba(148,163,184,.22);
+      background:rgba(15,23,42,.6);
+    }
+    .controls{
+      display:flex; flex-wrap:wrap; gap:10px;
+      margin:4px 0 4px;
+    }
+    button{
+      appearance:none; border:none; cursor:pointer; color:white;
+      padding:12px 16px; border-radius:14px; font-weight:600;
+      background:linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow:0 10px 20px rgba(99,102,241,.28);
+      transition: transform .08s ease, box-shadow .2s ease, filter .2s ease;
+    }
+    button:hover{filter:brightness(1.06)}
+    button:active{transform:translateY(1px)}
+    button.secondary{
+      background:rgba(2,6,23,.6);
+      border:1px solid rgba(148,163,184,.2);
+      box-shadow:none; color:#e5e7eb;
+    }
+    button:disabled{opacity:.55; cursor:not-allowed}
+    .tip{
+      margin-top:10px; color:var(--muted); font-size:13px;
+    }
+    .grid{
+      margin-top:18px;
+      display:grid; gap:12px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 720px){
+      .grid{grid-template-columns: 1.15fr .85fr}
+    }
+    .panel{
+      border:1px solid rgba(148,163,184,.14);
+      background:rgba(2,6,23,.35);
+      border-radius:16px; padding:16px;
+    }
+    .panel h3{margin:0 0 10px; font-size:14px; letter-spacing:.3px; color:#c7d2fe; text-transform:uppercase}
+    .history{
+      display:flex; flex-direction:column; gap:8px; max-height:210px; overflow:auto; padding-right:6px;
+      scrollbar-width: thin;
+    }
+    .row{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:10px 12px; border:1px solid rgba(148,163,184,.18); border-radius:12px; background:rgba(15,23,42,.55);
+      font-size:14px;
+    }
+    .row .ts{color:var(--muted); font-size:12px}
+    .footer{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:14px 18px;
+      border-top:1px solid rgba(148,163,184,.12);
+      color:var(--muted); font-size:12px;
+      background:linear-gradient(0deg, rgba(96,165,250,.05), transparent 70%);
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      border:1px solid rgba(148,163,184,.35);
+      background:rgba(2,6,23,.6);
+      padding:2px 6px; border-radius:6px; color:#e2e8f0; font-size:12px
+    }
+    /* tiny confetti chips */
+    .chip{
+      position:absolute; width:8px; height:12px; border-radius:2px; opacity:0; pointer-events:none;
+      transform:translate(-50%, -50%) rotate(0deg);
+      animation: pop 700ms ease forwards;
+    }
+    @keyframes pop{
+      0%{opacity:0; transform:translate(-50%,-50%) scale(.6) rotate(0deg)}
+      10%{opacity:1}
+      100%{opacity:0; transform: translate(var(--x), var(--y)) scale(1) rotate(260deg)}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="card" role="application" aria-labelledby="title">
+      <div class="header">
+        <div class="logo" aria-hidden="true">R</div>
+        <div>
+          <h1 id="title">Ryan Name Generator</h1>
+          <p class="subtitle">Click the button. Receive destiny.</p>
+        </div>
+      </div>
+
+      <div class="body" id="app">
+        <div class="output" aria-live="polite" aria-atomic="true" id="output" title="Why always Ryan? Because the algorithm said so.">
+          <span id="name">—</span>
+          <span class="pill" id="counter" aria-label="times generated">0×</span>
+        </div>
+
+        <div class="controls" aria-label="controls">
+          <button id="generate" autofocus aria-label="Generate a name (spoiler: Ryan)">Generate</button>
+          <button id="copy" class="secondary" disabled>Copy</button>
+          <button id="clear" class="secondary">Clear history</button>
+        </div>
+        <p class="tip">Tip: press <span class="kbd">Space</span> or <span class="kbd">Enter</span> to generate.</p>
+
+        <div class="grid">
+          <div class="panel">
+            <h3>Result</h3>
+            <div class="row">
+              <strong id="resultText" aria-live="polite">Waiting...</strong>
+              <span class="ts" id="resultTime">—</span>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>History</h3>
+            <div class="history" id="history" aria-label="Generation history"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>v1.0 • <span class="kbd">100% local</span></span>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (() => {
+      const output = document.getElementById('output');
+      const nameEl = document.getElementById('name');
+      const counterEl = document.getElementById('counter');
+      const resultText = document.getElementById('resultText');
+      const resultTime = document.getElementById('resultTime');
+      const historyEl = document.getElementById('history');
+      const btnGen = document.getElementById('generate');
+      const btnCopy = document.getElementById('copy');
+      const btnClear = document.getElementById('clear');
+
+      let count = 0;
+
+      function now() {
+        const d = new Date();
+        return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+      }
+
+      function microConfetti(container) {
+        const colors = ['#60a5fa', '#a78bfa', '#34d399', '#f472b6', '#f59e0b'];
+        for (let i=0; i<14; i++){
+          const chip = document.createElement('div');
+          chip.className = 'chip';
+          chip.style.background = colors[i % colors.length];
+          const angle = (Math.random()*1.2 - 0.6); // -0.6..0.6 rad
+          const dist = 80 + Math.random()*60;
+          const x = Math.cos(angle)*dist;
+          const y = Math.sin(angle)*dist - (40 + Math.random()*30);
+          chip.style.setProperty('--x', `${x}px`);
+          chip.style.setProperty('--y', `${y}px`);
+          chip.style.left = 'calc(100% - 68px)'; // near the counter pill
+          chip.style.top = '50%';
+          container.appendChild(chip);
+          chip.addEventListener('animationend', () => chip.remove());
+        }
+      }
+
+      function pushHistory(text) {
+        const row = document.createElement('div');
+        row.className = 'row';
+        const left = document.createElement('strong');
+        left.textContent = text;
+        const right = document.createElement('span');
+        right.className = 'ts';
+        right.textContent = now();
+        row.appendChild(left);
+        row.appendChild(right);
+        historyEl.prepend(row);
+      }
+
+      function setBusy(busy){
+        output.setAttribute('aria-busy', busy ? 'true' : 'false');
+      }
+
+      function generate() {
+        setBusy(true);
+        // playful micro-delay for shimmer
+        setTimeout(() => {
+          const generated = 'Ryan';
+          nameEl.textContent = generated;
+          resultText.textContent = generated;
+          resultTime.textContent = `at ${now()}`;
+          count++;
+          counterEl.textContent = `${count}×`;
+          btnCopy.disabled = false;
+
+          // subtle scale pulse
+          output.animate([{transform:'scale(1)'},{transform:'scale(1.02)'},{transform:'scale(1)'}], {duration:240, easing:'ease-out'});
+          microConfetti(output);
+          pushHistory(generated);
+          setBusy(false);
+        }, 220);
+      }
+
+      async function copy() {
+        const text = nameEl.textContent.trim();
+        if (!text || text === '—') return;
+        try {
+          await navigator.clipboard.writeText(text);
+          btnCopy.textContent = 'Copied!';
+          btnCopy.disabled = true;
+          setTimeout(() => {
+            btnCopy.textContent = 'Copy';
+            btnCopy.disabled = false;
+          }, 900);
+        } catch {
+          btnCopy.textContent = 'Copy failed';
+          setTimeout(() => btnCopy.textContent = 'Copy', 900);
+        }
+      }
+
+      function clearHistory(){
+        historyEl.innerHTML = '';
+        count = 0;
+        counterEl.textContent = '0×';
+        nameEl.textContent = '—';
+        resultText.textContent = 'Waiting...';
+        resultTime.textContent = '—';
+        btnCopy.disabled = true;
+      }
+
+      // bindings
+      btnGen.addEventListener('click', generate);
+      btnCopy.addEventListener('click', copy);
+      btnClear.addEventListener('click', clearHistory);
+      document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' || e.key === 'Enter'){
+          // avoid clicking buttons when focused on them with space
+          if (e.target.tagName === 'BUTTON') return;
+          e.preventDefault();
+          generate();
+        }
+      });
+
+      // first focus hint
+      btnGen.focus();
+    })();
+  </script>
+</body>
+</html>
